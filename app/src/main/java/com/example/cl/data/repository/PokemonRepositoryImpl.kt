@@ -8,11 +8,19 @@ class PokemonRepositoryImpl(
     private val apiService: PokeApiService
 ) : PokemonRepository {
 
-    override suspend fun getPokemonById(id: Int): Pokemon {
-        val response = apiService.getPokemonById(id)
-        return Pokemon(
-            name = response.name,
-            imageUrl = response.sprites.frontDefault.orEmpty()
-        )
+    override suspend fun getPokemonList(limit: Int, offset: Int): List<Pokemon> {
+        val listResponse = apiService.getPokemonList(limit = limit, offset = offset)
+
+        return listResponse.results.mapIndexed { index, item ->
+            val id = extractPokemonId(item.url) ?: (offset + index + 1)
+            Pokemon(
+                name = item.name,
+                imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$id.png"
+            )
+        }
+    }
+
+    private fun extractPokemonId(url: String): Int? {
+        return url.trimEnd('/').substringAfterLast('/').toIntOrNull()
     }
 }

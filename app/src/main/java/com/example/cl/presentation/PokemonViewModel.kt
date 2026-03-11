@@ -4,34 +4,22 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.cl.domain.usecase.GetPokemonByIdUseCase
+import com.example.cl.domain.model.Pokemon
+import com.example.cl.domain.usecase.GetPokemonListUseCase
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 class PokemonViewModel(
-    private val getPokemonByIdUseCase: GetPokemonByIdUseCase
+    private val getPokemonListUseCase: GetPokemonListUseCase
 ) : ViewModel() {
 
-    private val _state = MutableLiveData(PokemonUiState())
-    val state: LiveData<PokemonUiState> = _state
+    private val _pokemons = MutableLiveData<List<Pokemon>>(emptyList())
+    val pokemons: LiveData<List<Pokemon>> = _pokemons
 
-    fun loadPokemon(id: Int) {
+    fun loadPokemons(limit: Int = 30, offset: Int = 0) {
         viewModelScope.launch {
-            _state.value = _state.value?.copy(isLoading = true, errorMessage = null)
-            runCatching { getPokemonByIdUseCase(id) }
-                .onSuccess { pokemon ->
-                    _state.value = PokemonUiState(isLoading = false, pokemon = pokemon)
-                }
-                .onFailure {
-                    _state.value = PokemonUiState(
-                        isLoading = false,
-                        errorMessage = "Не удалось загрузить покемона"
-                    )
-                }
+            runCatching { getPokemonListUseCase(limit, offset) }
+                .onSuccess { _pokemons.value = it }
+                .onFailure { _pokemons.value = emptyList() }
         }
-    }
-
-    fun loadRandomPokemon() {
-        loadPokemon(Random.nextInt(1, 1026))
     }
 }

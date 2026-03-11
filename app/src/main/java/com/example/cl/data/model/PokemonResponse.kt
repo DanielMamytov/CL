@@ -1,13 +1,10 @@
 package com.example.cl.data.model
 
-import com.google.gson.annotations.SerializedName
-
-data class PokemonResponse(
-    val name: String,
-    val sprites: SpritesResponse
+data class PokemonListResponse(
+    val results: List<PokemonItemResponse>
 )
 
-data class SpritesResponse(
-    @SerializedName("front_default")
-    val frontDefault: String?
+data class PokemonItemResponse(
+    val name: String,
+    val url: String
 )
