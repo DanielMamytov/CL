@@ -6,14 +6,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cl.data.api.PokeApiService
 import com.example.cl.data.repository.PokemonRepositoryImpl
 import com.example.cl.databinding.ActivityMainBinding
-import com.example.cl.domain.usecase.GetPokemonListUseCase
-import com.example.cl.presentation.PokemonAdapter
+import com.example.cl.domain.usecase.GetPokemonByIdUseCase
 import com.example.cl.presentation.PokemonViewModel
 import com.example.cl.presentation.PokemonViewModelFactory
+import coil.load
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -22,7 +21,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: PokemonViewModel
-    private val pokemonAdapter = PokemonAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,18 +34,10 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        setupRecyclerView()
         setupViewModel()
         bindUi()
 
-        viewModel.loadPokemons()
-    }
-
-    private fun setupRecyclerView() {
-        binding.rvPokemonList.apply {
-            layoutManager = LinearLayoutManager(this@MainActivity)
-            adapter = pokemonAdapter
-        }
+        viewModel.loadPokemon(1)
     }
 
     private fun setupViewModel() {
@@ -59,18 +49,28 @@ class MainActivity : AppCompatActivity() {
 
         val service = retrofit.create(PokeApiService::class.java)
         val repository = PokemonRepositoryImpl(service)
-        val useCase = GetPokemonListUseCase(repository)
+        val useCase = GetPokemonByIdUseCase(repository)
         val factory = PokemonViewModelFactory(useCase)
 
         viewModel = ViewModelProvider(this, factory)[PokemonViewModel::class.java]
     }
 
     private fun bindUi() {
+        binding.btnLoadPokemon.setOnClickListener {
+            viewModel.loadRandomPokemon()
+        }
+
         viewModel.state.observe(this) { state ->
             binding.progressBar.visibility = if (state.isLoading) android.view.View.VISIBLE else android.view.View.GONE
             binding.tvError.visibility = if (state.errorMessage != null) android.view.View.VISIBLE else android.view.View.GONE
             binding.tvError.text = state.errorMessage
-            pokemonAdapter.submitList(state.pokemons)
+
+            state.pokemon?.let { pokemon ->
+                binding.tvPokemonName.text = pokemon.name.replaceFirstChar { it.uppercaseChar() }
+                binding.ivPokemon.load(pokemon.imageUrl) {
+                    crossfade(true)
+                }
+            }
         }
     }
 }

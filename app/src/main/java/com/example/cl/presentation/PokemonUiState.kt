@@ -4,6 +4,6 @@ import com.example.cl.domain.model.Pokemon
 
 data class PokemonUiState(
     val isLoading: Boolean = false,
-    val pokemons: List<Pokemon> = emptyList(),
+    val pokemon: Pokemon? = null,
     val errorMessage: String? = null
 )

@@ -1,13 +1,10 @@
 package com.example.cl.data.api
 
-import com.example.cl.data.model.PokemonListResponse
+import com.example.cl.data.model.PokemonResponse
 import retrofit2.http.GET
-import retrofit2.http.Query
+import retrofit2.http.Path
 
 interface PokeApiService {
-    @GET("pokemon")
-    suspend fun getPokemonList(
-        @Query("limit") limit: Int = 30,
-        @Query("offset") offset: Int = 0
-    ): PokemonListResponse
+    @GET("pokemon/{id}")
+    suspend fun getPokemonById(@Path("id") id: Int): PokemonResponse
 }
